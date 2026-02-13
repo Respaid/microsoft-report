@@ -1338,13 +1338,13 @@
 <!-- ============ JAVASCRIPT ============ -->
 <script>
   // Password gate
-  const PASS_HASH = 'bWljcm9zb2Z0MjAyNg=='; // base64 of password
+  const VALID_PASSES = ['neil', 'tannisha'];
   const pwOverlay = document.getElementById('pw-overlay');
   const pwInput = document.getElementById('pw-input');
   const pwBtn = document.getElementById('pw-btn');
 
   function checkPassword() {
-    if (btoa(pwInput.value) === PASS_HASH) {
+    if (VALID_PASSES.includes(pwInput.value.toLowerCase().trim())) {
       pwOverlay.classList.add('hidden');
       setTimeout(() => pwOverlay.style.display = 'none', 400);
     } else {
