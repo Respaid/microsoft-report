@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Microsoft Corporation — Collection Performance Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface-2: #1a1a24;
+    --surface-3: #22222e;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.15);
+    --text: #ffffff;
+    --text-secondary: rgba(255,255,255,0.55);
+    --text-tertiary: rgba(255,255,255,0.35);
+    --accent: #00C9A7;
+    --accent-bg: rgba(0,201,167,0.12);
+    --accent-border: rgba(0,201,167,0.25);
+    --blue: #4f8fff;
+    --blue-bg: rgba(79,143,255,0.12);
+    --purple: #a855f7;
+    --purple-bg: rgba(168,85,247,0.12);
+    --orange: #f59e0b;
+    --orange-bg: rgba(245,158,11,0.12);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.12);
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.12);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* ============ PASSWORD GATE ============ */
+  .pw-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(10,10,15,0.97);
+    backdrop-filter: blur(30px);
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.4s;
+  }
+  .pw-overlay.hidden { opacity: 0; pointer-events: none; }
+  .pw-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 48px 40px; text-align: center;
+    max-width: 420px; width: 90%;
+  }
+  .pw-box h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .pw-box p { font-size: 13px; color: var(--text-tertiary); margin-bottom: 24px; }
+  .pw-input {
+    width: 100%; padding: 14px 18px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+    font-size: 15px; font-family: inherit; outline: none; margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .pw-input:focus { border-color: var(--accent); }
+  .pw-input.error { border-color: var(--red); animation: shake 0.4s; }
+  .pw-btn {
+    width: 100%; padding: 14px; background: var(--accent); color: #000;
+    font-weight: 700; font-size: 14px; border: none; border-radius: 10px;
+    cursor: pointer; font-family: inherit; transition: opacity 0.2s;
+  }
+  .pw-btn:hover { opacity: 0.85; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%,60% { transform: translateX(-6px); }
+    40%,80% { transform: translateX(6px); }
+  }
+
+  /* ============ HEADER ============ */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 40px; border-bottom: 1px solid var(--border);
+    background: var(--surface); position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .header-badge {
+    font-size: 11px; font-weight: 600; background: var(--accent-bg);
+    color: var(--accent); padding: 4px 12px; border-radius: 20px;
+    border: 1px solid var(--accent-border); letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .view-toggle {
+    display: flex; background: var(--surface-2); border-radius: 10px;
+    padding: 3px; border: 1px solid var(--border);
+  }
+  .view-btn {
+    padding: 8px 20px; border-radius: 8px; border: none; background: transparent;
+    color: var(--text-secondary); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .view-btn.active { background: var(--accent); color: #000; box-shadow: 0 2px 8px rgba(0,201,167,0.3); }
+  .view-btn:hover:not(.active) { color: var(--text); background: var(--surface-3); }
+
+  /* ============ LAYOUT ============ */
+  .overview-view, .advanced-view { padding: 40px; max-width: 1400px; margin: 0 auto; }
+  .advanced-view { display: none; }
+
+  /* ============ VOLUME HERO ============ */
+  .volume-hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    position: relative; padding: 40px 20px 80px;
+    margin: -40px -40px 60px -40px;
+    background: radial-gradient(ellipse at 50% 60%, rgba(0,201,167,0.06) 0%, transparent 70%);
+    border-bottom: 1px solid var(--border);
+  }
+  .volume-eyebrow {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 3px; color: var(--accent); margin-bottom: 16px;
+    opacity: 0; animation: fadeSlideUp 0.8s ease 0.2s forwards;
+  }
+  .volume-headline {
+    font-size: 18px; font-weight: 500; color: var(--text-secondary);
+    margin-bottom: 32px; max-width: 560px; line-height: 1.5;
+    opacity: 0; animation: fadeSlideUp 0.8s ease 0.4s forwards;
+  }
+  .volume-big-number {
+    font-size: 130px; font-weight: 900; letter-spacing: -5px; line-height: 1;
+    color: var(--accent); margin-bottom: 8px;
+    opacity: 0; animation: fadeScaleIn 1s ease 0.6s forwards;
+    text-shadow: 0 0 80px rgba(0,201,167,0.3);
+  }
+  .volume-big-label {
+    font-size: 20px; font-weight: 600; color: var(--text-secondary);
+    margin-bottom: 48px;
+    opacity: 0; animation: fadeSlideUp 0.8s ease 0.8s forwards;
+  }
+  .volume-stats-row {
+    display: flex; gap: 40px; align-items: center; justify-content: center;
+    flex-wrap: wrap; opacity: 0; animation: fadeSlideUp 0.8s ease 1s forwards;
+  }
+  .volume-stat { text-align: center; }
+  .volume-stat-num { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+  .volume-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary); margin-top: 2px; }
+  .volume-stat-divider { width: 1px; height: 40px; background: var(--border); }
+  .scroll-indicator {
+    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    opacity: 0; animation: fadeIn 1s ease 2s forwards;
+  }
+  .scroll-indicator-text { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--text-tertiary); }
+  .scroll-indicator-arrow { font-size: 16px; color: var(--text-tertiary); animation: scrollBounce 2s ease-in-out infinite; }
+
+  /* ============ HERO STATS ============ */
+  .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 72px; }
+  .hero-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 40px; text-align: center; transition: all 0.3s;
+  }
+  .hero-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+  .hero-card.highlight {
+    background: linear-gradient(135deg, rgba(0,201,167,0.08), rgba(0,201,167,0.02));
+    border-color: var(--accent-border);
+  }
+  .hero-label {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--text-tertiary); margin-bottom: 12px;
+  }
+  .hero-value { font-size: 52px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+  .hero-card.highlight .hero-value { color: var(--accent); }
+  .hero-sub { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+  .hero-sub strong { color: var(--accent); font-weight: 700; }
+
+  /* ============ SECTION HEADERS ============ */
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; margin-top: 56px; }
+  .section-header h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+  .section-badge { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px; }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+  .badge-purple { background: var(--purple-bg); color: var(--purple); }
+  .badge-orange { background: var(--orange-bg); color: var(--orange); }
+
+  /* ============ CALLOUT ============ */
+  .callout {
+    background: linear-gradient(135deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--accent-border); border-radius: 16px;
+    padding: 32px; margin-bottom: 40px; text-align: center;
+  }
+  .callout-text {
+    font-size: 18px; font-weight: 600; line-height: 1.6;
+    color: var(--text); max-width: 700px; margin: 0 auto;
+  }
+  .callout-text em { color: var(--accent); font-style: normal; font-weight: 800; }
+
+  /* ============ AI STACK ============ */
+  .ai-stack {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px 32px; margin-bottom: 24px;
+  }
+  .ai-stack-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .ai-stack-flow { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding-bottom: 8px; }
+  .ai-stack-node {
+    flex: 1; min-width: 120px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 12px; text-align: center; transition: all 0.3s;
+  }
+  .ai-stack-node:hover { border-color: var(--accent-border); transform: translateY(-2px); }
+  .ai-stack-node-icon { font-size: 24px; margin-bottom: 8px; }
+  .ai-stack-node-name { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 8px; line-height: 1.3; }
+  .ai-stack-node-stat { font-size: 20px; font-weight: 900; color: var(--accent); letter-spacing: -0.5px; }
+  .ai-stack-node-detail { font-size: 10px; color: var(--text-tertiary); margin-top: 2px; }
+  .ai-stack-arrow { display: flex; align-items: center; font-size: 16px; color: var(--text-tertiary); padding: 0 6px; flex-shrink: 0; }
+  .ai-stack-footnote { font-size: 12px; color: var(--text-tertiary); margin-top: 16px; font-style: italic; line-height: 1.5; }
+
+  /* ============ WORK SUMMARY BAR ============ */
+  .work-summary-bar {
+    background: linear-gradient(135deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--purple-bg); border-radius: 14px;
+    padding: 20px 28px; margin-bottom: 48px;
+    display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;
+  }
+  .work-summary-stat { text-align: center; }
+  .work-summary-stat .big { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+  .work-summary-stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary); margin-top: 2px; }
+  .work-summary-divider { width: 1px; height: 40px; background: var(--border); }
+
+  /* ============ STORY GRID ============ */
+  .story-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 72px; }
+  .story-grid.two-col { grid-template-columns: repeat(2, 1fr); }
+  .story-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; transition: all 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .story-card:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+  .story-card.wide { grid-column: span 2; }
+  .story-card.full { grid-column: span 3; }
+  .story-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 16px;
+  }
+  .story-icon.green { background: var(--green-bg); }
+  .story-icon.blue { background: var(--blue-bg); }
+  .story-icon.purple { background: var(--purple-bg); }
+  .story-icon.orange { background: var(--orange-bg); }
+  .story-icon.accent { background: var(--accent-bg); }
+  .story-card h3 {
+    font-size: 14px; font-weight: 600; color: var(--text-secondary);
+    margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .story-big-number { font-size: 40px; font-weight: 900; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 6px; }
+  .story-detail { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+  .story-detail strong { color: var(--text); }
+
+  /* ============ BATCH TIMELINE ============ */
+  .batch-timeline {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+    margin-bottom: 40px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+  }
+  .batch-col { padding: 28px; border-right: 1px solid var(--border); position: relative; }
+  .batch-col:last-child { border-right: none; }
+  .batch-col.active-batch { background: linear-gradient(180deg, rgba(245,158,11,0.06), transparent); }
+  .batch-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-tertiary); margin-bottom: 4px; }
+  .batch-date { font-size: 12px; color: var(--text-tertiary); margin-bottom: 16px; }
+  .batch-stat { margin-bottom: 14px; }
+  .batch-stat-label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .batch-stat-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .batch-stat-value.green { color: var(--accent); }
+  .batch-active-badge {
+    position: absolute; top: 12px; right: 12px;
+    font-size: 10px; font-weight: 700; background: var(--orange);
+    color: #000; padding: 3px 10px; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ============ EMAIL ENGAGEMENT ============ */
+  .email-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .email-step {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; text-align: center; transition: all 0.3s;
+  }
+  .email-step:hover { border-color: var(--border-hover); }
+  .email-step-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin-bottom: 8px; }
+  .email-step-sent { font-size: 12px; color: var(--text-tertiary); margin-bottom: 10px; }
+  .email-step-rate { font-size: 32px; font-weight: 900; letter-spacing: -1px; color: var(--accent); }
+  .email-step-label { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+  .email-step-click { font-size: 18px; font-weight: 800; color: var(--blue); margin-top: 8px; }
+  .email-step-click-label { font-size: 10px; color: var(--text-tertiary); }
+
+  .industry-compare {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 40px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .industry-compare-item { display: flex; align-items: center; gap: 8px; }
+  .industry-bar { height: 8px; border-radius: 4px; }
+  .industry-bar.ours { background: var(--accent); }
+  .industry-bar.theirs { background: var(--surface-3); }
+  .industry-label { font-size: 12px; color: var(--text-secondary); }
+  .industry-label strong { color: var(--text); }
+
+  /* ============ ENTERPRISE SECTION ============ */
+  .enterprise-card {
+    background: linear-gradient(135deg, rgba(79,143,255,0.06), var(--surface));
+    border: 1px solid rgba(79,143,255,0.2); border-radius: 16px;
+    padding: 32px; margin-bottom: 40px;
+  }
+  .enterprise-card h3 { font-size: 16px; font-weight: 800; color: var(--blue); margin-bottom: 16px; }
+  .enterprise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+  .enterprise-stat {
+    background: rgba(79,143,255,0.08); border: 1px solid rgba(79,143,255,0.15);
+    border-radius: 10px; padding: 16px; text-align: center;
+  }
+  .enterprise-stat-value { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: var(--blue); }
+  .enterprise-stat-label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .enterprise-detail { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+  .enterprise-detail strong { color: var(--text); }
+
+  /* ============ STATUS BAR ============ */
+  .status-bar-container {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px 28px; margin-bottom: 20px;
+  }
+  .status-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .status-bar-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-bar-total { font-size: 13px; color: var(--text-tertiary); }
+  .status-bar {
+    height: 32px; border-radius: 8px; overflow: hidden;
+    display: flex; background: var(--surface-3); margin-bottom: 16px;
+  }
+  .status-seg {
+    height: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: rgba(0,0,0,0.7);
+    transition: all 0.3s; position: relative;
+  }
+  .status-seg:hover { filter: brightness(1.15); }
+  .status-seg.seg-recovered { background: var(--accent); }
+  .status-seg.seg-active { background: var(--orange); }
+  .status-seg.seg-noresponse { background: #ef4444; }
+  .status-seg.seg-unreachable { background: var(--blue); }
+  .status-seg.seg-cancelled { background: var(--surface-3); color: var(--text-tertiary); border-right: 1px solid var(--border); }
+  .status-seg.seg-disputed { background: var(--purple); }
+  .status-bar-legend { display: flex; gap: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ============ RECOMMENDATION ============ */
+  .recommendation {
+    background: linear-gradient(135deg, rgba(0,201,167,0.08), rgba(0,201,167,0.03));
+    border: 1px solid var(--accent-border); border-left: 4px solid var(--accent);
+    border-radius: 14px; padding: 32px 36px; margin-bottom: 72px;
+  }
+  .recommendation h3 { font-size: 17px; font-weight: 800; color: var(--accent); margin-bottom: 16px; }
+  .recommendation ul { list-style: none; padding: 0; margin: 0; }
+  .recommendation ul li {
+    font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.8;
+    padding-left: 20px; position: relative;
+  }
+  .recommendation ul li::before { content: '\2192'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .recommendation ul li strong { color: rgba(255,255,255,0.95); }
+
+  /* ============ ADVANCED MODE ============ */
+  .summary-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
+  .summary-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; text-align: center;
+  }
+  .summary-item-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary); margin-bottom: 6px; }
+  .summary-item-value { font-size: 26px; font-weight: 900; letter-spacing: -1px; }
+  .summary-item-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+  .data-section { margin-bottom: 40px; }
+  .data-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .data-table {
+    width: 100%; border-collapse: collapse; background: var(--surface);
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+  }
+  .data-table thead th {
+    background: var(--surface-2); padding: 14px 16px; text-align: left;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-tertiary);
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table tbody td {
+    padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover { background: var(--surface-2); }
+  .data-table .total-row { background: var(--surface-2); font-weight: 700; }
+  .data-table .total-row td { border-top: 2px solid var(--border); font-weight: 800; }
+  .data-table .highlight-row { background: rgba(0,201,167,0.04); }
+  .trend-up { color: var(--accent); }
+  .trend-down { color: var(--red); }
+
+  /* ============ TOOLTIP ============ */
+  .has-tooltip { position: relative; cursor: help; border-bottom: 1px dotted var(--text-tertiary); }
+  .has-tooltip::after {
+    content: attr(data-tooltip); position: absolute; bottom: calc(100% + 10px);
+    left: 50%; transform: translateX(-50%) translateY(4px);
+    background: #1e1e2a; color: var(--text-secondary); font-size: 12px;
+    font-weight: 400; line-height: 1.5; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid var(--border-hover); white-space: normal;
+    width: max-content; max-width: 300px; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s; z-index: 50;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); letter-spacing: 0; text-transform: none;
+  }
+  .has-tooltip::before {
+    content: ''; position: absolute; bottom: calc(100% + 4px); left: 50%;
+    transform: translateX(-50%); border: 6px solid transparent;
+    border-top-color: #1e1e2a; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 51;
+  }
+  .has-tooltip:hover::after, .has-tooltip:hover::before { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .has-tooltip:hover::before { transform: translateX(-50%); }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    text-align: center; padding: 32px 40px; border-top: 1px solid var(--border);
+    color: var(--text-tertiary); font-size: 12px;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  /* ============ SCROLL REVEAL ============ */
+  .scroll-reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .scroll-reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ============ ANIMATIONS ============ */
+  @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeScaleIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes scrollBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 768px) {
+    .header { padding: 16px 20px; }
+    .overview-view, .advanced-view { padding: 20px; }
+    .hero-stats { grid-template-columns: 1fr; }
+    .hero-value { font-size: 38px; }
+    .story-grid { grid-template-columns: 1fr; }
+    .story-card.wide, .story-card.full { grid-column: span 1; }
+    .batch-timeline { grid-template-columns: 1fr; }
+    .batch-col { border-right: none; border-bottom: 1px solid var(--border); }
+    .summary-bar { grid-template-columns: repeat(2, 1fr); }
+    .email-grid { grid-template-columns: repeat(2, 1fr); }
+    .enterprise-grid { grid-template-columns: 1fr; }
+    .volume-hero { min-height: 90vh; padding: 30px 16px 60px; }
+    .volume-big-number { font-size: 70px; letter-spacing: -3px; }
+    .volume-big-label { font-size: 16px; }
+    .volume-headline { font-size: 15px; }
+    .volume-stats-row { gap: 20px; }
+    .volume-stat-divider { display: none; }
+    .ai-stack-flow { flex-direction: column; gap: 8px; }
+    .ai-stack-arrow { transform: rotate(90deg); justify-content: center; padding: 4px 0; }
+    .work-summary-bar { flex-direction: column; gap: 12px; }
+    .work-summary-divider { width: 40px; height: 1px; }
+    .industry-compare { flex-direction: column; gap: 12px; }
+    .has-tooltip::after { left: 0; transform: translateX(0) translateY(4px); }
+    .has-tooltip:hover::after { transform: translateX(0) translateY(0); }
+    .has-tooltip::before { left: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ PASSWORD GATE ============ -->
+<div class="pw-overlay" id="pw-overlay">
+  <div class="pw-box">
+    <h2>Confidential Report</h2>
+    <p>This report is prepared exclusively for Microsoft Corporation.<br>Enter password to continue.</p>
+    <input type="password" class="pw-input" id="pw-input" placeholder="Password" autocomplete="off">
+    <button class="pw-btn" id="pw-btn">Access Report</button>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">respaid<span>.</span></div>
+    <div class="header-badge">Microsoft Corporation</div>
+  </div>
+  <div class="header-right">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="switchView('overview')">Overview</button>
+      <button class="view-btn" onclick="switchView('advanced')">Advanced</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERVIEW MODE ============ -->
+<div class="overview-view" id="overview-view">
+
+  <!-- ====== VOLUME HERO (Full Screen) ====== -->
+  <div class="volume-hero">
+    <div class="volume-eyebrow">Your Collection Machine</div>
+    <div class="volume-headline">Every case gets multi-channel AI outreach.<br>Here's what 10 weeks of automated work looks like.</div>
+
+    <div class="volume-big-number">2,300+</div>
+    <div class="volume-big-label">Collection Touchpoints Delivered</div>
+
+    <div class="volume-stats-row">
+      <div class="volume-stat">
+        <div class="volume-stat-num" style="color: var(--accent)">958</div>
+        <div class="volume-stat-label">Emails Sent</div>
+      </div>
+      <div class="volume-stat-divider"></div>
+      <div class="volume-stat">
+        <div class="volume-stat-num" style="color: var(--blue)">301</div>
+        <div class="volume-stat-label">AI Phone Calls</div>
+      </div>
+      <div class="volume-stat-divider"></div>
+      <div class="volume-stat">
+        <div class="volume-stat-num" style="color: var(--purple)">428</div>
+        <div class="volume-stat-label">Contacts Discovered</div>
+      </div>
+      <div class="volume-stat-divider"></div>
+      <div class="volume-stat">
+        <div class="volume-stat-num" style="color: var(--orange)">600+</div>
+        <div class="volume-stat-label">Hours Automated</div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <span class="scroll-indicator-text">Full report below</span>
+      <span class="scroll-indicator-arrow">&#8595;</span>
+    </div>
+  </div>
+
+  <!-- ====== HERO STATS ====== -->
+  <div class="hero-stats">
+    <div class="hero-card">
+      <div class="hero-label">Total Portfolio</div>
+      <div class="hero-value has-tooltip" data-tooltip="$2.2M (Batch 1, 109 accounts) + $7.4M (Batch 2, 85 accounts) + $972K (Batch 3, 125 accounts) = $10.6M total placed across 3 batches.">$10.6M</div>
+      <div class="hero-sub">319 accounts across <strong>3 batches</strong></div>
+    </div>
+    <div class="hero-card highlight">
+      <div class="hero-label">Total Recovered</div>
+      <div class="hero-value has-tooltip" data-tooltip="$429K recovered + $22K partially paid + $71K in installment plans = $522K total positive outcomes across 38 accounts.">$522K</div>
+      <div class="hero-sub">38 accounts — <strong>recovered + installments</strong></div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-label">Active Pipeline</div>
+      <div class="hero-value has-tooltip" data-tooltip="83 accounts in Batch 3 are still in active outreach. Final Notice email scheduled for February 16, 2026 — historically our highest-converting touchpoint." style="color: var(--orange)">$733K</div>
+      <div class="hero-sub">83 cases still <strong>in active outreach</strong></div>
+    </div>
+  </div>
+
+  <!-- ====== THE MACHINE ====== -->
+  <div class="section-header">
+    <h2>The Machine Behind Your Collections</h2>
+    <div class="section-line"></div>
+    <span class="section-badge badge-purple">AI-POWERED</span>
+  </div>
+
+  <div class="callout">
+    <div class="callout-text">
+      Every case triggers <em>6 AI systems</em> working in parallel.<br>
+      The equivalent of <em>600+ hours</em> of human work — delivered in 10 weeks.
+    </div>
+  </div>
+
+  <div class="ai-stack scroll-reveal">
+    <div class="ai-stack-title">Collection Pipeline — What Happens for Each Case</div>
+    <div class="ai-stack-flow">
+      <div class="ai-stack-node">
+        <div class="ai-stack-node-icon">&#128233;</div>
+        <div class="ai-stack-node-name">Email<br>Engine</div>
+        <div class="ai-stack-node-stat">958</div>
+        <div class="ai-stack-node-detail">personalized emails</div>
+      </div>
+      <div class="ai-stack-arrow">&#8594;</div>
+      <div class="ai-stack-node">
+        <div class="ai-stack-node-icon">&#128241;</div>
+        <div class="ai-stack-node-name">SMS &amp;<br>Voicemail</div>
+        <div class="ai-stack-node-stat">~1,080</div>
+        <div class="ai-stack-node-detail">messages delivered</div>
+      </div>
+      <div class="ai-stack-arrow">&#8594;</div>
+      <div class="ai-stack-node">
+        <div class="ai-stack-node-icon">&#128222;</div>
+        <div class="ai-stack-node-name">AI Voice<br>Agent</div>
+        <div class="ai-stack-node-stat">301</div>
+        <div class="ai-stack-node-detail">phone calls made</div>
+      </div>
+      <div class="ai-stack-arrow">&#8594;</div>
+      <div class="ai-stack-node">
+        <div class="ai-stack-node-icon">&#128270;</div>
+        <div class="ai-stack-node-name">Data<br>Enrichment</div>
+        <div class="ai-stack-node-stat">428</div>
+        <div class="ai-stack-node-detail">new contacts found</div>
+      </div>
+      <div class="ai-stack-arrow">&#8594;</div>
+      <div class="ai-stack-node">
+        <div class="ai-stack-node-icon">&#9878;&#65039;</div>
+        <div class="ai-stack-node-name">Dispute<br>Resolution</div>
+        <div class="ai-stack-node-stat">53</div>
+        <div class="ai-stack-node-detail">disputes handled</div>
+      </div>
+      <div class="ai-stack-arrow">&#8594;</div>
+      <div class="ai-stack-node">
+        <div class="ai-stack-node-icon">&#129302;</div>
+        <div class="ai-stack-node-name">AI Auto<br>Resolution</div>
+        <div class="ai-stack-node-stat">22</div>
+        <div class="ai-stack-node-detail">resolved by AI</div>
+      </div>
+    </div>
+    <div class="ai-stack-footnote">
+      Each account receives an average of 7.2 touchpoints across email, SMS, voicemail, and phone. All communications are personalized, legally compliant, and optimized based on debtor engagement patterns.
+    </div>
+  </div>
+
+  <div class="work-summary-bar scroll-reveal">
+    <div class="work-summary-stat">
+      <div class="big" style="color: var(--purple)">600+</div>
+      <div class="label">Hours Automated</div>
+    </div>
+    <div class="work-summary-divider"></div>
+    <div class="work-summary-stat">
+      <div class="big">~4</div>
+      <div class="label">Months FTE Equivalent</div>
+    </div>
+    <div class="work-summary-divider"></div>
+    <div class="work-summary-stat">
+      <div class="big" style="color: var(--accent)">0</div>
+      <div class="label">Spam Reports</div>
+    </div>
+    <div class="work-summary-divider"></div>
+    <div class="work-summary-stat">
+      <div class="big" style="color: var(--accent)">24/7</div>
+      <div class="label">Operation</div>
+    </div>
+  </div>
+
+  <!-- ====== EMAIL ENGAGEMENT ====== -->
+  <div class="section-header">
+    <h2>Email Engagement</h2>
+    <div class="section-line"></div>
+    <span class="section-badge badge-orange">3X INDUSTRY</span>
+  </div>
+
+  <div class="callout">
+    <div class="callout-text">
+      <em>61%</em> of debtors open our emails. <em>45%</em> click the payment link.<br>
+      Industry average: 15-25% open, 2-5% click. Zero spam reports on 958 emails.
+    </div>
+  </div>
+
+  <div class="email-grid scroll-reveal">
+    <div class="email-step">
+      <div class="email-step-name">Email 1</div>
+      <div class="email-step-sent">319 sent</div>
+      <div class="email-step-rate">52%</div>
+      <div class="email-step-label">Open Rate</div>
+      <div class="email-step-click">42%</div>
+      <div class="email-step-click-label">Click Rate</div>
+    </div>
+    <div class="email-step">
+      <div class="email-step-name">Email 2</div>
+      <div class="email-step-sent">261 sent</div>
+      <div class="email-step-rate">68%</div>
+      <div class="email-step-label">Open Rate</div>
+      <div class="email-step-click">50%</div>
+      <div class="email-step-click-label">Click Rate</div>
+    </div>
+    <div class="email-step">
+      <div class="email-step-name">Email 3</div>
+      <div class="email-step-sent">238 sent</div>
+      <div class="email-step-rate">66%</div>
+      <div class="email-step-label">Open Rate</div>
+      <div class="email-step-click">46%</div>
+      <div class="email-step-click-label">Click Rate</div>
+    </div>
+    <div class="email-step">
+      <div class="email-step-name">Final Notice</div>
+      <div class="email-step-sent">134 sent</div>
+      <div class="email-step-rate">61%</div>
+      <div class="email-step-label">Open Rate</div>
+      <div class="email-step-click">41%</div>
+      <div class="email-step-click-label">Click Rate</div>
+    </div>
+  </div>
+
+  <div class="industry-compare scroll-reveal">
+    <div class="industry-compare-item">
+      <div class="industry-bar ours" style="width: 122px"></div>
+      <div class="industry-label"><strong>Respaid: 61%</strong> open rate</div>
+    </div>
+    <div class="industry-compare-item">
+      <div class="industry-bar theirs" style="width: 40px"></div>
+      <div class="industry-label">Industry avg: 20%</div>
+    </div>
+    <div style="flex: 1"></div>
+    <div class="industry-compare-item">
+      <div class="industry-bar ours" style="width: 90px"></div>
+      <div class="industry-label"><strong>Respaid: 45%</strong> click rate</div>
+    </div>
+    <div class="industry-compare-item">
+      <div class="industry-bar theirs" style="width: 7px"></div>
+      <div class="industry-label">Industry avg: 3.5%</div>
+    </div>
+  </div>
+
+  <!-- ====== STANDARD ACCOUNTS PERFORMANCE ====== -->
+  <div class="section-header">
+    <h2>Standard Accounts Performance</h2>
+    <div class="section-line"></div>
+    <span class="section-badge badge-green">ACCOUNTS &lt;$50K</span>
+  </div>
+
+  <div class="callout">
+    <div class="callout-text">
+      Your sub-$50K portfolio: <em>268 accounts</em> across 3 batches.<br>
+      Consistent <em>12-14%</em> case recovery rate — with Batch 3 still active.
+    </div>
+  </div>
+
+  <div class="batch-timeline scroll-reveal">
+    <div class="batch-col">
+      <div class="batch-label">Batch 1</div>
+      <div class="batch-date">Dec 10, 2025 — Finished</div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Accounts</div>
+        <div class="batch-stat-value">108</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Placed</div>
+        <div class="batch-stat-value">$334K</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Recovered</div>
+        <div class="batch-stat-value green">$14.5K</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Recovery Rate</div>
+        <div class="batch-stat-value">13.9%</div>
+      </div>
+    </div>
+    <div class="batch-col">
+      <div class="batch-label">Batch 2</div>
+      <div class="batch-date">Jan 14, 2026 — Finished</div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Accounts</div>
+        <div class="batch-stat-value">35</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Placed</div>
+        <div class="batch-stat-value">$1.11M</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Positive Outcomes</div>
+        <div class="batch-stat-value green">$100K</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Recovery Rate</div>
+        <div class="batch-stat-value">11.4%</div>
+      </div>
+    </div>
+    <div class="batch-col active-batch">
+      <div class="batch-active-badge">Active</div>
+      <div class="batch-label">Batch 3</div>
+      <div class="batch-date">Jan 26, 2026 — In Progress</div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Accounts</div>
+        <div class="batch-stat-value">125</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Placed</div>
+        <div class="batch-stat-value">$972K</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Recovered So Far</div>
+        <div class="batch-stat-value green">$74.6K</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Recovery Rate</div>
+        <div class="batch-stat-value green">12.8%</div>
+      </div>
+      <div class="batch-stat">
+        <div class="batch-stat-label">Still Active</div>
+        <div class="batch-stat-value" style="color: var(--orange)">83 cases</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: linear-gradient(135deg, rgba(245,158,11,0.06), rgba(245,158,11,0.02)); border: 1px solid rgba(245,158,11,0.15); border-left: 3px solid rgba(245,158,11,0.5); border-radius: 12px; padding: 24px 28px; margin-bottom: 48px; display: flex; align-items: flex-start; gap: 14px;" class="scroll-reveal">
+    <div style="font-size: 20px; flex-shrink: 0; margin-top: 2px;">&#9200;</div>
+    <div style="font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.7;">
+      <strong style="color: rgba(255,255,255,0.95);">Batch 3 Final Notice scheduled for February 16.</strong> This is historically our highest-converting touchpoint across all clients. 83 accounts ($733K) will receive their last escalation email. We expect a significant uptick in recoveries in the days following.
+    </div>
+  </div>
+
+  <!-- ====== ENTERPRISE ACCOUNTS ====== -->
+  <div class="section-header">
+    <h2>Enterprise Accounts</h2>
+    <div class="section-line"></div>
+    <span class="section-badge badge-blue">$50K+ PER ACCOUNT</span>
+  </div>
+
+  <div class="enterprise-card scroll-reveal">
+    <h3>Enterprise Portfolio — $50K+ Accounts</h3>
+    <div class="enterprise-grid">
+      <div class="enterprise-stat">
+        <div class="enterprise-stat-value">51</div>
+        <div class="enterprise-stat-label">Accounts</div>
+      </div>
+      <div class="enterprise-stat">
+        <div class="enterprise-stat-value">$8.17M</div>
+        <div class="enterprise-stat-label">Total Placed</div>
+      </div>
+      <div class="enterprise-stat">
+        <div class="enterprise-stat-value">$403K</div>
+        <div class="enterprise-stat-label">Recovered</div>
+      </div>
+    </div>
+    <div class="enterprise-detail">
+      <strong>Batch 2 highlight:</strong> 3 accounts recovered totaling $332K from the $50K-$250K tier. 2 additional accounts entered installment plans worth $71K.
+      <br><br>
+      Enterprise accounts ($50K+) represent <strong>77% of total portfolio value</strong> but have a different recovery dynamic — longer decision cycles, multiple approvers, and higher dispute complexity. Our AI enrichment identified <strong>83 additional decision-makers</strong> across these accounts, expanding our reach to the right stakeholders.
+    </div>
+  </div>
+
+  <!-- ====== DATA ENRICHMENT ====== -->
+  <div class="section-header">
+    <h2>AI Data Enrichment</h2>
+    <div class="section-line"></div>
+    <span class="section-badge badge-green">428 CONTACTS FOUND</span>
+  </div>
+
+  <div class="story-grid two-col scroll-reveal">
+    <div class="story-card">
+      <div class="story-icon accent">&#128270;</div>
+      <h3>Contacts Discovered</h3>
+      <div class="story-big-number" style="color: var(--accent)">428</div>
+      <div class="story-detail">Additional decision-makers found by AI across <strong>263 accounts</strong>. CFOs, Controllers, AP managers, Billing contacts — the people who actually approve payments.</div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon purple">&#129302;</div>
+      <h3>Enrichment by Batch</h3>
+      <div class="story-big-number" style="color: var(--purple)">280</div>
+      <div class="story-detail">
+        Batch 3 alone: <strong>280 contacts</strong> (vs 65 in B1 and 83 in B2). Our AI gets smarter with each portfolio — learning which titles and departments are most responsive for Microsoft accounts.
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DISPUTE RESOLUTION ====== -->
+  <div class="story-grid two-col scroll-reveal">
+    <div class="story-card">
+      <div class="story-icon green">&#9878;&#65039;</div>
+      <h3>Disputes Handled</h3>
+      <div class="story-big-number" style="color: var(--green)">53</div>
+      <div class="story-detail">Total disputes filed by debtors. <strong>22 resolved automatically by AI</strong> — verifying payment proof, sending invoice links, and cross-referencing records.</div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon orange">&#128200;</div>
+      <h3>AI Call Insights</h3>
+      <div class="story-big-number" style="color: var(--orange)">301</div>
+      <div class="story-detail">
+        AI phone calls made. <strong>24 successful conversations</strong> yielding: 10 new contact details, 5 wrong contact corrections, 3 payment confirmations, 4 identity verifications, and 2 callback requests.
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== STATUS BREAKDOWN ====== -->
+  <div class="section-header">
+    <h2>Portfolio Status Breakdown</h2>
+    <div class="section-line"></div>
+    <span class="section-badge badge-orange">319 ACCOUNTS</span>
+  </div>
+
+  <div class="status-bar-container scroll-reveal">
+    <div class="status-bar-header">
+      <div class="status-bar-title">All 319 Accounts — Current Status</div>
+      <div class="status-bar-total">$10.6M total placed</div>
+    </div>
+    <div class="status-bar">
+      <div class="status-seg seg-recovered" style="width: 11.9%" title="Recovered: 38 accounts ($522K)">11.9%</div>
+      <div class="status-seg seg-active" style="width: 26.0%" title="Active: 83 accounts ($733K)">26.0%</div>
+      <div class="status-seg seg-noresponse" style="width: 35.1%" title="Completed — No Payment: 112 accounts">35.1%</div>
+      <div class="status-seg seg-cancelled" style="width: 14.7%" title="Cancelled: 47 accounts"></div>
+      <div class="status-seg seg-unreachable" style="width: 8.2%" title="Unreachable: 26 accounts"></div>
+      <div class="status-seg seg-disputed" style="width: 4.1%" title="Disputed: 13 accounts"></div>
+    </div>
+    <div class="status-bar-legend">
+      <div class="legend-item"><div class="legend-dot" style="background: var(--accent)"></div> Recovered (38)</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--orange)"></div> Active (83)</div>
+      <div class="legend-item"><div class="legend-dot" style="background: #ef4444"></div> Completed — No Payment (112)</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--surface-3); border: 1px solid var(--border-hover)"></div> Cancelled by Microsoft (47)</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--blue)"></div> Unreachable (26)</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--purple)"></div> Disputed (13)</div>
+    </div>
+  </div>
+
+  <div style="background: linear-gradient(135deg, var(--surface), var(--surface-2)); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 48px;" class="scroll-reveal">
+    <div style="font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.7;">
+      <strong style="color: rgba(255,255,255,0.95)">Key insight:</strong> 61% email open rate confirms debtors are receiving and reading our communications. The 112 accounts that completed outreach without paying have demonstrated <strong>clear awareness but deliberate avoidance</strong>. This is valuable data — these are documented non-payers with full audit trails.
+      <br><br>
+      <strong style="color: rgba(255,255,255,0.95)">Cancelled accounts (47):</strong> Removed during active outreach at Microsoft's request. These accounts exit the pipeline before the full sequence completes.
+    </div>
+  </div>
+
+  <!-- ====== RECOMMENDATION ====== -->
+  <div class="section-header">
+    <h2>What the Data Tells Us</h2>
+    <div class="section-line"></div>
+    <span class="section-badge badge-green">NEXT STEPS</span>
+  </div>
+
+  <div class="recommendation scroll-reveal">
+    <h3>Our Recommendation: Increase Volume</h3>
+    <ul>
+      <li><strong>Your sub-$50K portfolio recovers at 12-14% by case count</strong> — consistent across all 3 batches. More volume in this segment means more recovered dollars.</li>
+      <li><strong>Batch 3 still has 83 active cases ($733K)</strong> with the Final Notice going out Feb 16. We expect additional conversions in the coming days.</li>
+      <li><strong>AI enrichment gets better with scale:</strong> Batch 3 found 280 new contacts vs 65 in Batch 1 — 4.3x improvement. More cases = better AI learning = higher recovery rates.</li>
+      <li><strong>Enterprise accounts ($50K+) benefit from volume too:</strong> Batch 2's $332K recovery from just 3 accounts proves the model works on larger accounts when given enough data to learn from.</li>
+      <li><strong>Zero operational burden on your team:</strong> 600+ hours of automated work. No manual follow-up needed. Simply upload the portfolio and let the system work.</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ============ ADVANCED MODE ============ -->
+<div class="advanced-view" id="advanced-view">
+
+  <!-- Summary Bar -->
+  <div class="summary-bar">
+    <div class="summary-item">
+      <div class="summary-item-label">Total Placed</div>
+      <div class="summary-item-value">$10.6M</div>
+      <div class="summary-item-sub">319 accounts</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-item-label">Recovered</div>
+      <div class="summary-item-value" style="color: var(--accent)">$522K</div>
+      <div class="summary-item-sub">38 accounts</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-item-label">Active</div>
+      <div class="summary-item-value" style="color: var(--orange)">$733K</div>
+      <div class="summary-item-sub">83 accounts</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-item-label">Emails Sent</div>
+      <div class="summary-item-value">958</div>
+      <div class="summary-item-sub">61% open rate</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-item-label">AI Calls</div>
+      <div class="summary-item-value">301</div>
+      <div class="summary-item-sub">24 successful</div>
+    </div>
+  </div>
+
+  <!-- Campaign Breakdown -->
+  <div class="data-section">
+    <h3>Campaign Breakdown by Batch</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Campaign</th>
+          <th>Accounts</th>
+          <th>Amount</th>
+          <th>Recovered</th>
+          <th>Rate</th>
+          <th>Emails</th>
+          <th>Open %</th>
+          <th>Click %</th>
+          <th>Contacts Found</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Batch 1 -->
+        <tr>
+          <td style="font-weight: 600">B1 — 0-50K, 0-180d (7%)</td>
+          <td>1</td>
+          <td>$9,145</td>
+          <td style="color: var(--accent)">$9,145</td>
+          <td class="trend-up">100%</td>
+          <td>4</td>
+          <td>75%</td>
+          <td>25%</td>
+          <td>1</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600">B1 — 0-50K, 181-360d (10%)</td>
+          <td>33</td>
+          <td>$95,158</td>
+          <td style="color: var(--accent)">$1,848</td>
+          <td>12.1%</td>
+          <td>117</td>
+          <td>67.5%</td>
+          <td>48.7%</td>
+          <td>19</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600">B1 — 0-50K, 361+d (14%)</td>
+          <td>74</td>
+          <td>$229,832</td>
+          <td style="color: var(--accent)">$3,553</td>
+          <td>13.5%</td>
+          <td>259</td>
+          <td>66.4%</td>
+          <td>52.5%</td>
+          <td>44</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr style="background: rgba(79,143,255,0.04)">
+          <td style="font-weight: 600; color: var(--blue)">B1 — 250K+, 12+m (10%)</td>
+          <td>1</td>
+          <td>$1,860,985</td>
+          <td>$0</td>
+          <td>0%</td>
+          <td>4</td>
+          <td>0%</td>
+          <td>0%</td>
+          <td>1</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr class="total-row">
+          <td>Batch 1 Total</td>
+          <td>109</td>
+          <td>$2,195,119</td>
+          <td style="color: var(--accent)">$14,546</td>
+          <td>13.8%</td>
+          <td>384</td>
+          <td>66.1%</td>
+          <td>50.5%</td>
+          <td>65</td>
+          <td></td>
+        </tr>
+
+        <!-- Batch 2 -->
+        <tr>
+          <td style="font-weight: 600">B2 — 0-50K, 0-180d (7%)</td>
+          <td>1</td>
+          <td>$4,985</td>
+          <td style="color: var(--accent)">$4,985</td>
+          <td class="trend-up">100%</td>
+          <td>3</td>
+          <td>33.3%</td>
+          <td>0%</td>
+          <td>1</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600">B2 — 0-50K, 181-360d (10%)</td>
+          <td>1</td>
+          <td>$24,198</td>
+          <td style="color: var(--accent)">$24,198</td>
+          <td class="trend-up">100%</td>
+          <td>3</td>
+          <td>100%</td>
+          <td>100%</td>
+          <td>4</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight: 600">B2 — 0-50K, 361+d (14%)</td>
+          <td>33</td>
+          <td>$1,083,735</td>
+          <td style="color: var(--accent)">$71,053</td>
+          <td>6.1%</td>
+          <td>110</td>
+          <td>53.6%</td>
+          <td>34.5%</td>
+          <td>39</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr style="background: rgba(79,143,255,0.04)">
+          <td style="font-weight: 600; color: var(--blue)">B2 — 50K-250K, 361+d (12%)</td>
+          <td>45</td>
+          <td>$4,649,519</td>
+          <td style="color: var(--accent)">$332,400</td>
+          <td>6.7%</td>
+          <td>133</td>
+          <td>55.6%</td>
+          <td>29.3%</td>
+          <td>35</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr style="background: rgba(79,143,255,0.04)">
+          <td style="font-weight: 600; color: var(--blue)">B2 — 250K+, 361+d (10%)</td>
+          <td>5</td>
+          <td>$1,658,703</td>
+          <td>$0</td>
+          <td>0%</td>
+          <td>14</td>
+          <td>35.7%</td>
+          <td>7.1%</td>
+          <td>4</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface-3);color:var(--text-tertiary)">Finished</span></td>
+        </tr>
+        <tr class="total-row">
+          <td>Batch 2 Total</td>
+          <td>85</td>
+          <td>$7,421,139</td>
+          <td style="color: var(--accent)">$432,635</td>
+          <td>5.8%</td>
+          <td>263</td>
+          <td>54.0%</td>
+          <td>30.8%</td>
+          <td>83</td>
+          <td></td>
+        </tr>
+
+        <!-- Batch 3 -->
+        <tr class="highlight-row">
+          <td style="font-weight: 600">B3 — 0-50K, 0-180d (7%)</td>
+          <td>3</td>
+          <td>$12,900</td>
+          <td style="color: var(--accent)">$1,116</td>
+          <td>33.3%</td>
+          <td>7</td>
+          <td>42.9%</td>
+          <td>28.6%</td>
+          <td>2</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--orange-bg);color:var(--orange)">Active</span></td>
+        </tr>
+        <tr class="highlight-row">
+          <td style="font-weight: 600">B3 — 0-50K, 181-360d (10%)</td>
+          <td>6</td>
+          <td>$43,767</td>
+          <td style="color: var(--accent)">$6,332</td>
+          <td>16.7%</td>
+          <td>16</td>
+          <td>75.0%</td>
+          <td>56.3%</td>
+          <td>15</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--orange-bg);color:var(--orange)">Active</span></td>
+        </tr>
+        <tr class="highlight-row">
+          <td style="font-weight: 600">B3 — 0-50K, 361+d (14%)</td>
+          <td>116</td>
+          <td>$915,703</td>
+          <td style="color: var(--accent)">$67,192</td>
+          <td>12.1%</td>
+          <td>288</td>
+          <td>61.5%</td>
+          <td>50.7%</td>
+          <td>263</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--orange-bg);color:var(--orange)">Active</span></td>
+        </tr>
+        <tr class="total-row">
+          <td>Batch 3 Total</td>
+          <td>125</td>
+          <td>$972,370</td>
+          <td style="color: var(--accent)">$74,639</td>
+          <td>12.8%</td>
+          <td>311</td>
+          <td>61.7%</td>
+          <td>50.5%</td>
+          <td>280</td>
+          <td><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--orange-bg);color:var(--orange)">Active</span></td>
+        </tr>
+
+        <!-- Grand Total -->
+        <tr class="total-row" style="background: rgba(0,201,167,0.06)">
+          <td style="color: var(--accent)">Grand Total</td>
+          <td style="color: var(--accent)">319</td>
+          <td style="color: var(--accent)">$10,588,629</td>
+          <td style="color: var(--accent)">$521,820</td>
+          <td style="color: var(--accent)">—</td>
+          <td style="color: var(--accent)">958</td>
+          <td style="color: var(--accent)">61.4%</td>
+          <td style="color: var(--accent)">45.1%</td>
+          <td style="color: var(--accent)">428</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Email Engagement Detail -->
+  <div class="data-section">
+    <h3>Email Engagement by Step — All Batches</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Batch</th>
+          <th>Sent</th>
+          <th>Opened</th>
+          <th>Open Rate</th>
+          <th>Clicked</th>
+          <th>Click Rate</th>
+          <th>Spam</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Email 1 (Day 0)</td><td>Batch 1</td><td>109</td><td>62</td><td class="trend-up">56.9%</td><td>51</td><td class="trend-up">46.8%</td><td>0</td></tr>
+        <tr><td>Email 2 (Day 9)</td><td>Batch 1</td><td>102</td><td>74</td><td class="trend-up">72.5%</td><td>57</td><td class="trend-up">55.9%</td><td>0</td></tr>
+        <tr><td>Email 3 (Day 13)</td><td>Batch 1</td><td>92</td><td>64</td><td class="trend-up">69.6%</td><td>46</td><td class="trend-up">50.0%</td><td>0</td></tr>
+        <tr><td>Final Notice (Day 20)</td><td>Batch 1</td><td>81</td><td>54</td><td class="trend-up">66.7%</td><td>40</td><td class="trend-up">49.4%</td><td>0</td></tr>
+        <tr class="total-row"><td>Batch 1 Total</td><td></td><td>384</td><td>254</td><td class="trend-up">66.1%</td><td>194</td><td class="trend-up">50.5%</td><td>0</td></tr>
+
+        <tr><td>Email 1 (Day 0)</td><td>Batch 2</td><td>85</td><td>44</td><td class="trend-up">51.8%</td><td>30</td><td class="trend-up">35.3%</td><td>0</td></tr>
+        <tr><td>Email 2 (Day 9)</td><td>Batch 2</td><td>63</td><td>34</td><td class="trend-up">54.0%</td><td>22</td><td class="trend-up">34.9%</td><td>0</td></tr>
+        <tr><td>Email 3 (Day 15)</td><td>Batch 2</td><td>59</td><td>33</td><td class="trend-up">55.9%</td><td>17</td><td class="trend-up">28.8%</td><td>0</td></tr>
+        <tr><td>Final Notice (Day 21)</td><td>Batch 2</td><td>56</td><td>31</td><td class="trend-up">55.4%</td><td>12</td><td class="trend-up">21.4%</td><td>0</td></tr>
+        <tr class="total-row"><td>Batch 2 Total</td><td></td><td>263</td><td>142</td><td class="trend-up">54.0%</td><td>81</td><td class="trend-up">30.8%</td><td>0</td></tr>
+
+        <tr class="highlight-row"><td>Email 1 (Day 0)</td><td>Batch 3</td><td>125</td><td>59</td><td class="trend-up">47.2%</td><td>54</td><td class="trend-up">43.2%</td><td>0</td></tr>
+        <tr class="highlight-row"><td>Email 2 (Day 9)</td><td>Batch 3</td><td>97</td><td>71</td><td class="trend-up">73.2%</td><td>53</td><td class="trend-up">54.6%</td><td>0</td></tr>
+        <tr class="highlight-row"><td>Email 3 (Day 15)</td><td>Batch 3</td><td>89</td><td>62</td><td class="trend-up">69.7%</td><td>50</td><td class="trend-up">56.2%</td><td>0</td></tr>
+        <tr class="total-row"><td>Batch 3 Total (3 of 4 steps)</td><td></td><td>311</td><td>192</td><td class="trend-up">61.7%</td><td>157</td><td class="trend-up">50.5%</td><td>0</td></tr>
+
+        <tr class="total-row" style="background: rgba(0,201,167,0.06)">
+          <td style="color: var(--accent)">All Batches</td>
+          <td></td>
+          <td style="color: var(--accent)">958</td>
+          <td style="color: var(--accent)">588</td>
+          <td style="color: var(--accent)">61.4%</td>
+          <td style="color: var(--accent)">432</td>
+          <td style="color: var(--accent)">45.1%</td>
+          <td style="color: var(--accent)">0</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Status Distribution -->
+  <div class="data-section">
+    <h3>Account Status Distribution</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Batch 1</th>
+          <th>Batch 2</th>
+          <th>Batch 3</th>
+          <th>Total</th>
+          <th>% of Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="font-weight:600; color: var(--accent)">Recovered</td><td>15 ($14.5K)</td><td>4 ($357K)</td><td>14 ($57K)</td><td style="font-weight:700">33 ($429K)</td><td>10.3%</td></tr>
+        <tr><td style="font-weight:600; color: var(--accent)">Partially Paid</td><td>0</td><td>1 ($5K)</td><td>2 ($17K)</td><td style="font-weight:700">3 ($22K)</td><td>0.9%</td></tr>
+        <tr><td style="font-weight:600; color: var(--accent)">Installment Plan</td><td>0</td><td>2 ($71K)</td><td>0</td><td style="font-weight:700">2 ($71K)</td><td>0.6%</td></tr>
+        <tr style="background: rgba(245,158,11,0.04)"><td style="font-weight:600; color: var(--orange)">Active</td><td>0</td><td>0</td><td>83 ($733K)</td><td style="font-weight:700; color: var(--orange)">83 ($733K)</td><td>26.0%</td></tr>
+        <tr><td style="font-weight:600">Finished (No Payment)</td><td>65 ($2.1M)</td><td>47 ($4.2M)</td><td>0</td><td style="font-weight:700">112 ($6.3M)</td><td>35.1%</td></tr>
+        <tr><td style="font-weight:600">Cancelled</td><td>26 ($58K)</td><td>17 ($1.6M)</td><td>4 ($14K)</td><td style="font-weight:700">47 ($1.7M)</td><td>14.7%</td></tr>
+        <tr><td style="font-weight:600">Unreachable</td><td>2 ($12K)</td><td>10 ($881K)</td><td>14 ($72K)</td><td style="font-weight:700">26 ($964K)</td><td>8.2%</td></tr>
+        <tr><td style="font-weight:600">Disputed</td><td>1 ($6K)</td><td>4 ($314K)</td><td>8 ($78K)</td><td style="font-weight:700">13 ($399K)</td><td>4.1%</td></tr>
+        <tr class="total-row">
+          <td>Total</td>
+          <td>109 ($2.2M)</td>
+          <td>85 ($7.4M)</td>
+          <td>125 ($972K)</td>
+          <td style="color: var(--accent)">319 ($10.6M)</td>
+          <td>100%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- AI Call Results -->
+  <div class="data-section">
+    <h3>AI Voice Agent — Call Results</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Batch 1</th>
+          <th>Batch 2</th>
+          <th>Batch 3</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="font-weight:600">Total Calls Made</td><td>108</td><td>77</td><td>116</td><td style="font-weight:700">301</td></tr>
+        <tr><td style="font-weight:600; color: var(--accent)">Successful Conversations</td><td>6</td><td>1</td><td>24</td><td style="font-weight:700; color: var(--accent)">31</td></tr>
+        <tr><td>— Contact data received</td><td>3</td><td>1</td><td>10</td><td>14</td></tr>
+        <tr><td>— Wrong contact corrected</td><td>2</td><td>0</td><td>5</td><td>7</td></tr>
+        <tr><td>— Payment confirmed</td><td>1</td><td>0</td><td>3</td><td>4</td></tr>
+        <tr><td>— Identity verified</td><td>0</td><td>0</td><td>4</td><td>4</td></tr>
+        <tr><td>— Callback requested</td><td>0</td><td>0</td><td>2</td><td>2</td></tr>
+        <tr><td style="font-weight:600">Blocked (existing feedback)</td><td>54</td><td>10</td><td>17</td><td>81</td></tr>
+        <tr><td style="font-weight:600">No Answer / Failed</td><td>48</td><td>66</td><td>75</td><td>189</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FTE Equivalent -->
+  <div class="data-section">
+    <h3>Human Equivalent — Time Saved</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th>Time Per Unit</th>
+          <th>Volume</th>
+          <th>Total Hours</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Personalized emails (research + write + send)</td><td>10 min</td><td>958 emails</td><td>160h</td></tr>
+        <tr><td>SMS messages</td><td>3 min</td><td>~540 SMS</td><td>27h</td></tr>
+        <tr><td>Voicemail recordings</td><td>5 min</td><td>~540 voicemails</td><td>45h</td></tr>
+        <tr><td>Phone calls (dial, speak, log)</td><td>15 min</td><td>301 calls</td><td>75h</td></tr>
+        <tr><td>Contact research &amp; enrichment</td><td>30 min</td><td>428 contacts</td><td>214h</td></tr>
+        <tr><td>Dispute handling &amp; resolution</td><td>30 min</td><td>53 disputes</td><td>27h</td></tr>
+        <tr><td>Account management &amp; tracking</td><td>10 min</td><td>319 accounts</td><td>53h</td></tr>
+        <tr class="total-row">
+          <td>Total Human Equivalent</td>
+          <td></td>
+          <td></td>
+          <td style="color: var(--accent); font-size: 18px">601 hours</td>
+        </tr>
+        <tr class="total-row" style="background: rgba(168,85,247,0.06)">
+          <td style="color: var(--purple)">= ~15 weeks full-time = 3.8 months FTE</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ============ FOOTER ============ -->
+<div class="footer">
+  Confidential — Prepared by <a href="https://respaid.com" target="_blank">Respaid</a> (YC S23) for Microsoft Corporation &middot; February 2026<br>
+  Data as of February 13, 2026 &middot; Report auto-generated from live collection data
+</div>
+
+<!-- ============ JAVASCRIPT ============ -->
+<script>
+  // Password gate
+  const PASS_HASH = 'bWljcm9zb2Z0MjAyNg=='; // base64 of password
+  const pwOverlay = document.getElementById('pw-overlay');
+  const pwInput = document.getElementById('pw-input');
+  const pwBtn = document.getElementById('pw-btn');
+
+  function checkPassword() {
+    if (btoa(pwInput.value) === PASS_HASH) {
+      pwOverlay.classList.add('hidden');
+      setTimeout(() => pwOverlay.style.display = 'none', 400);
+    } else {
+      pwInput.classList.add('error');
+      setTimeout(() => pwInput.classList.remove('error'), 400);
+      pwInput.value = '';
+    }
+  }
+
+  pwBtn.addEventListener('click', checkPassword);
+  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+  pwInput.focus();
+
+  // View toggle
+  function switchView(view) {
+    document.getElementById('overview-view').style.display = view === 'overview' ? 'block' : 'none';
+    document.getElementById('advanced-view').style.display = view === 'advanced' ? 'block' : 'none';
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.toLowerCase() === view);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
