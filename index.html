@@ -99,6 +99,14 @@ section {
 .color-purple { color: var(--purple); }
 .color-orange { color: var(--orange); }
 
+/* ====== SECTION ICONS ====== */
+.section-icon { margin: 0 auto 20px; line-height: 0; }
+.section-icon svg { width: 40px; height: 40px; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes pulse-icon { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+.icon-float { animation: float 4s ease-in-out infinite; }
+.icon-pulse { animation: pulse-icon 3s ease-in-out infinite; }
+
 /* ====== REVEAL ANIMATION ====== */
 .reveal {
   opacity: 0; transform: translateY(40px);
@@ -124,22 +132,6 @@ section {
 }
 .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse-dot 2s infinite; }
 @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-/* ====== TRAJECTORY ====== */
-.trajectory { background: var(--surface); }
-.traj-steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-top: 48px; }
-.traj-step { text-align: center; flex: 0 0 auto; }
-.traj-step-num { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(32px, 4.5vw, 56px); font-weight: 800; color: var(--text-muted); transition: color 0.3s; }
-.traj-step:last-child .traj-step-num { color: var(--accent); font-size: clamp(40px, 6vw, 72px); }
-.traj-step-label { font-size: 13px; color: var(--text-muted); margin-top: 8px; font-weight: 500; }
-.traj-step:last-child .traj-step-label { color: var(--accent); }
-.traj-arrow { font-size: 28px; color: var(--text-muted); margin: 0 clamp(12px, 2.5vw, 40px); opacity: 0.3; position: relative; top: -10px; }
-.traj-badge {
-  display: inline-block; margin-top: 32px;
-  padding: 6px 14px; border-radius: 100px;
-  background: rgba(0,201,167,0.1); border: 1px solid rgba(0,201,167,0.2);
-  font-size: 14px; font-weight: 700; color: var(--accent);
-}
 
 /* ====== STATS ROW ====== */
 .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 64px; }
@@ -176,13 +168,6 @@ section {
 .work-label { font-size: 14px; color: var(--text-dim); font-weight: 500; }
 .work-detail { font-size: 12px; color: var(--text-muted); margin-top: 12px; }
 
-/* ====== INSIGHT ====== */
-.insight-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 56px 48px; margin-top: 56px; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto; }
-.insight-eyebrow { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
-.insight-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 16px; line-height: 1.4; }
-.insight-text { font-size: 16px; color: var(--text-dim); line-height: 1.8; }
-.insight-stat { display: inline; font-weight: 700; color: var(--accent); }
-
 /* ====== CTA ====== */
 .cta-section { background: linear-gradient(180deg, var(--bg), var(--surface)); }
 .cta-line { font-size: 18px; color: var(--text-dim); margin-top: 24px; line-height: 1.6; }
@@ -214,11 +199,6 @@ section {
   .stat-card::after { right: 20%; top: auto; bottom: 0; width: 60%; height: 1px; }
   .bvb-grid { grid-template-columns: 1fr; }
   .work-grid { grid-template-columns: 1fr; }
-  .traj-steps { flex-wrap: wrap; gap: 8px; }
-  .traj-arrow { margin: 0 12px; }
-  .insight-card { padding: 32px 24px; }
-  .dual-stats { flex-direction: column; gap: 32px !important; }
-  .dual-stats .divider { display: none; }
   .bottom-stats { flex-direction: column; gap: 32px !important; }
 }
 </style>
@@ -249,7 +229,6 @@ section {
   <div class="nav-dot" data-section="4"></div>
   <div class="nav-dot" data-section="5"></div>
   <div class="nav-dot" data-section="6"></div>
-  <div class="nav-dot" data-section="7"></div>
 </nav>
 
 <!-- 1. HERO -->
@@ -283,50 +262,40 @@ section {
   </div>
 </section>
 
-<!-- 2. RECOVERY BY BATCH -->
-<section class="trajectory" id="s1">
+<!-- 2. THE $332K RECOVERY -->
+<section style="background: var(--surface);" id="s1">
   <div class="section-inner">
     <div class="reveal">
-      <div class="label" style="margin-bottom: 16px;">Recovery by batch</div>
-      <div class="sublabel">Each batch, the AI discovers better contacts and<br>optimizes outreach strategy.</div>
+      <div class="section-icon icon-pulse">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 4L24 16L36 20L24 24L20 36L16 24L4 20L16 16L20 4Z" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="label" style="margin-bottom: 16px;">AI-powered recovery</div>
     </div>
     <div class="reveal reveal-delay-1">
-      <div class="traj-steps">
-        <div class="traj-step"><div class="traj-step-num">$14.5K</div><div class="traj-step-label">Batch 1 · Dec '25</div></div>
-        <div class="traj-arrow">→</div>
-        <div class="traj-step"><div class="traj-step-num">$432.6K</div><div class="traj-step-label">Batch 2 · Jan '26</div></div>
-        <div class="traj-arrow">→</div>
-        <div class="traj-step"><div class="traj-step-num">$79.9K+</div><div class="traj-step-label">Batch 3 (active)</div></div>
-      </div>
+      <div class="mega color-accent">$332K</div>
+      <div class="sublabel" style="margin-top: 16px;">recovered from a single account</div>
     </div>
-    <div class="reveal reveal-delay-2">
-      <div class="traj-badge">Batch 3 in progress — 17 accounts already recovered</div>
+    <div class="reveal reveal-delay-2" style="margin-top: 48px;">
+      <div class="sublabel" style="font-size: 16px; max-width: 520px;">The original contact was unreachable.<br>Our AI identified the right decision-maker.<br>Payment processed.</div>
     </div>
   </div>
 </section>
 
-<!-- 3. CUMULATIVE GROWTH -->
+<!-- 3. AI CONTACT DISCOVERY -->
 <section id="s2">
   <div class="section-inner">
     <div class="reveal">
-      <div class="label" style="margin-bottom: 24px;">Cumulative recovery growth</div>
+      <div class="section-icon icon-float">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="10" r="4" stroke="var(--orange)" stroke-width="1.5"/><circle cx="10" cy="32" r="4" stroke="var(--orange)" stroke-width="1.5"/><circle cx="30" cy="32" r="4" stroke="var(--orange)" stroke-width="1.5"/><line x1="20" y1="14" x2="12" y2="28" stroke="var(--orange)" stroke-width="1" opacity="0.4"/><line x1="20" y1="14" x2="28" y2="28" stroke="var(--orange)" stroke-width="1" opacity="0.4"/><line x1="14" y1="32" x2="26" y2="32" stroke="var(--orange)" stroke-width="1" opacity="0.4"/></svg>
+      </div>
+      <div class="label" style="margin-bottom: 16px;">Contact intelligence</div>
     </div>
     <div class="reveal reveal-delay-1">
-      <div class="big">$14.5K <span style="color: var(--text-muted); font-weight: 300;">→</span> $527K</div>
-      <div class="sublabel" style="margin-top: 16px;">December to February — <span class="color-accent" style="font-weight: 700;">36x growth</span></div>
+      <div class="mega color-orange">428</div>
+      <div class="sublabel" style="margin-top: 16px;">new decision-makers discovered by AI</div>
     </div>
-    <div class="reveal reveal-delay-2">
-      <div class="dual-stats" style="display: flex; align-items: center; justify-content: center; gap: 48px; margin-top: 64px;">
-        <div style="text-align: center;">
-          <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 48px; font-weight: 800; color: var(--accent);">$432.6K</div>
-          <div style="font-size: 14px; color: var(--text-dim); margin-top: 8px;">Highest single-batch recovery</div>
-        </div>
-        <div class="divider" style="width: 1px; height: 60px; background: var(--border);"></div>
-        <div style="text-align: center;">
-          <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 48px; font-weight: 800;">88%</div>
-          <div style="font-size: 14px; color: var(--text-dim); margin-top: 8px;">Net retention to Microsoft</div>
-        </div>
-      </div>
+    <div class="reveal reveal-delay-2" style="margin-top: 48px;">
+      <div class="sublabel" style="font-size: 16px; max-width: 540px;">89% of Batch 3 accounts were enriched automatically.<br><span class="color-orange" style="font-weight: 600;">$817K in additional coverage</span> — contacts that weren't in the original data.</div>
     </div>
   </div>
 </section>
@@ -335,6 +304,9 @@ section {
 <section style="background: var(--surface);" id="s3">
   <div class="section-inner">
     <div class="reveal">
+      <div class="section-icon icon-float">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 6L22 14H30L24 19L26 27L20 23L14 27L16 19L10 14H18L20 6Z" stroke="var(--blue)" stroke-width="1.5" stroke-linejoin="round" opacity="0.7"/></svg>
+      </div>
       <div class="label" style="margin-bottom: 24px;">The machine behind the results</div>
       <div class="mega color-blue">1,500+</div>
       <div class="sublabel" style="margin-top: 12px;">Automated touchpoints across all 3 batches</div>
@@ -352,9 +324,9 @@ section {
           <div class="work-detail">IVR navigation · voicemail delivery</div>
         </div>
         <div class="work-card">
-          <div class="work-num color-orange">428</div>
-          <div class="work-label">New contacts found by AI</div>
-          <div class="work-detail">$817K in additional coverage</div>
+          <div class="work-num color-orange">46/55</div>
+          <div class="work-label">Disputes resolved</div>
+          <div class="work-detail">21 handled entirely by AI</div>
         </div>
       </div>
     </div>
@@ -368,10 +340,6 @@ section {
           <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800; color: var(--accent);">~$18K</div>
           <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Labor cost avoided</div>
         </div>
-        <div style="text-align: center;">
-          <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800;">46/55</div>
-          <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Disputes resolved (21 by AI)</div>
-        </div>
       </div>
     </div>
   </div>
@@ -381,11 +349,16 @@ section {
 <section id="s4">
   <div class="section-inner">
     <div class="reveal">
+      <div class="section-icon icon-float">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="24" width="6" height="12" rx="2" stroke="var(--accent)" stroke-width="1.5" opacity="0.4"/><rect x="17" y="16" width="6" height="20" rx="2" stroke="var(--accent)" stroke-width="1.5" opacity="0.6"/><rect x="28" y="6" width="6" height="30" rx="2" stroke="var(--accent)" stroke-width="1.5" opacity="0.9"/></svg>
+      </div>
       <div class="label" style="margin-bottom: 24px;">Email engagement</div>
+    </div>
+    <div class="reveal reveal-delay-1">
       <div class="mega color-accent">62.3%</div>
       <div class="sublabel" style="margin-top: 12px;">open rate — vs 15–25% industry average</div>
     </div>
-    <div class="reveal reveal-delay-1">
+    <div class="reveal reveal-delay-2">
       <div class="stats-row" style="margin-top: 56px;">
         <div class="stat-card">
           <div class="stat-value color-blue">7,532</div>
@@ -393,45 +366,19 @@ section {
         </div>
         <div class="stat-card">
           <div class="stat-value color-accent">46.0%</div>
-          <div class="stat-label">Click rate · vs 2–5% industry avg</div>
+          <div class="stat-label">Click rate · vs 2–5% avg</div>
         </div>
         <div class="stat-card">
           <div class="stat-value">0</div>
-          <div class="stat-label">Spam complaints on 1,039 emails</div>
-        </div>
-      </div>
-    </div>
-    <div class="reveal reveal-delay-2" style="margin-top: 40px;">
-      <div class="sublabel" style="font-size: 16px;">Debtors who engage open our emails an average of <span class="color-accent" style="font-weight: 700;">12 times each</span>.<br>They're reading, re-reading, and forwarding internally — engagement unheard of in collections.</div>
-    </div>
-  </div>
-</section>
-
-<!-- 6. INSIGHT -->
-<section id="s5">
-  <div class="section-inner">
-    <div class="reveal">
-      <div class="label" style="margin-bottom: 24px;">What the data tells us</div>
-      <div class="big" style="max-width: 800px; margin: 0 auto;">AI contact discovery is the single biggest recovery driver.</div>
-    </div>
-    <div class="reveal reveal-delay-1">
-      <div class="insight-card">
-        <div class="insight-eyebrow">Key finding</div>
-        <div class="insight-title">When the original contact is unreachable,<br>AI finds someone who can pay.</div>
-        <div class="insight-text">
-          Across 319 accounts, our AI automatically researched companies and identified <span class="insight-stat">428 additional decision-makers</span> — people who weren't in the original data but have authority over the invoices.
-          <br><br>
-          In Batch 3 alone, <span class="insight-stat">111 of 125 accounts were enriched</span> with new contacts, adding <span class="insight-stat">$817K in additional coverage</span>. The AI cross-references public records, corporate filings, and professional networks to find the right person.
-          <br><br>
-          Batch 2's <span class="insight-stat">$332K single recovery</span> demonstrates the impact of reaching the right decision-maker — a pattern our AI enrichment enables across the entire portfolio.
+          <div class="stat-label">Spam complaints</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 7. BUILD VS BUY -->
-<section style="background: var(--surface);" id="s6">
+<!-- 6. BUILD VS BUY -->
+<section style="background: var(--surface);" id="s5">
   <div class="section-inner">
     <div class="reveal">
       <div class="label" style="margin-bottom: 24px;">The technology advantage</div>
@@ -468,20 +415,16 @@ section {
   </div>
 </section>
 
-<!-- 8. CTA -->
-<section class="cta-section" id="s7">
+<!-- 7. CTA -->
+<section class="cta-section" id="s6">
   <div class="section-inner">
     <div class="reveal">
-      <div class="label" style="margin-bottom: 24px;">Trajectory</div>
+      <div class="label" style="margin-bottom: 24px;">What's next</div>
     </div>
     <div class="reveal reveal-delay-1">
-      <div class="big">89%</div>
-      <div class="sublabel" style="margin-top: 12px;">of Batch 3 accounts enriched by AI —<br>the highest enrichment rate yet</div>
+      <div class="medium" style="max-width: 700px; margin: 0 auto; font-weight: 300;">Batch 3 is active. The AI keeps learning.<br>Every interaction makes the system stronger.</div>
     </div>
     <div class="reveal reveal-delay-2">
-      <div class="cta-line">With every batch, the AI discovers better contacts, resolves disputes<br>faster, and optimizes outreach timing — each interaction improves the system.</div>
-    </div>
-    <div class="reveal reveal-delay-3">
       <a href="https://cal.com/johnb/30" target="_blank" class="cta-link">Book a 30-min call</a>
     </div>
   </div>
